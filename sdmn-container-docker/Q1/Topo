@@ -1,0 +1,73 @@
+#!/bin/bash
+
+ip netns add H1
+ip netns add H2
+ip netns add H3
+ip netns add H4
+
+ip netns add R1
+
+ip link add BR1 type bridge
+ip link add BR2 type bridge
+
+ip link set dev BR1 up
+ip link set dev BR2 up
+
+ip link add veth-H1 type veth peer name veth-BR1-H1
+ip link add veth-H2 type veth peer name veth-BR1-H2
+ip link add veth-H3 type veth peer name veth-BR2-H3
+ip link add veth-H4 type veth peer name veth-BR2-H4
+ip link add veth-R1_1 type veth peer name veth-BR1-R1
+ip link add veth-R1_2 type veth peer name veth-BR2-R1
+
+ip link set veth-H1 netns H1
+ip link set veth-BR1-H1 master BR1
+ip link set veth-H2 netns H2
+ip link set veth-BR1-H2 master BR1
+
+ip link set veth-H3 netns H3
+ip link set veth-BR2-H3 master BR2
+ip link set veth-H4 netns H4
+ip link set veth-BR2-H4 master BR2
+
+ip link set veth-R1_1 netns R1
+ip link set veth-R1_2 netns R1
+ip link set veth-BR1-R1 master BR1
+ip link set veth-BR2-R1 master BR2
+
+ip -n H1 link set veth-H1 up
+ip -n H2 link set veth-H2 up
+ip -n H3 link set veth-H3 up
+ip -n H4 link set veth-H4 up
+ip -n R1 link set veth-R1_1 up
+ip -n R1 link set veth-R1_2 up
+
+ip link set veth-BR1-H1 up
+ip link set veth-BR1-H2 up
+ip link set veth-BR2-H3 up
+ip link set veth-BR2-H4 up
+ip link set veth-BR1-R1 up
+ip link set veth-BR2-R1 up
+
+ip -n H1 link set lo up
+ip -n H2 link set lo up
+ip -n H3 link set lo up
+ip -n H4 link set lo up
+ip -n R1 link set lo up
+
+ip netns exec R1 echo 1 > /proc/sys/net/ipv4/ip_forward
+
+ip -n H1 addr add 172.0.0.2/24 dev veth-H1 
+ip -n H2 addr add 172.0.0.3/24 dev veth-H2 
+ip -n H3 addr add 10.10.0.2/24 dev veth-H3
+ip -n H4 addr add 10.10.0.3/24 dev veth-H4
+ip -n R1 addr add 172.0.0.1/24 dev veth-R1_1
+ip -n R1 addr add 10.10.0.1/24 dev veth-R1_2
+
+ip netns exec H1 ip route add default via 172.0.0.1
+ip netns exec H2 ip route add default via 172.0.0.1
+ip netns exec H3 ip route add default via 10.10.0.1
+ip netns exec H4 ip route add default via 10.10.0.1
+
+# ip netns exec R1 ip route add 10.10.0.0/24 dev veth-R1_2
+# ip netns exec R1 ip route add 172.0.0.0/24 dev veth-R1_1

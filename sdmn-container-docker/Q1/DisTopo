@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sudo ip -all netns delete
+ip link set BR1 down
+ip link set BR2 down
+brctl delbr BR1
+brctl delbr BR2

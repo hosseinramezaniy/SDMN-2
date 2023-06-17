@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "-------> H1 pinging H4"
+sudo bash ./Ping H1 10.10.0.3
+echo "-------> H2 pinging H3"
+sudo bash ./Ping H2 10.10.0.2
+echo "-------> H4 pinging H2"
+sudo bash ./Ping H4 172.0.0.3
